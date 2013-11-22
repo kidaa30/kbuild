@@ -1,4 +1,4 @@
-# $Id: Makefile.kmk 2702 2013-11-21 00:11:08Z bird $
+# $Id: Makefile.kmk 2667 2012-11-25 19:52:26Z bird $
 ## @file
 # Sub-makefile for kmk / GNU Make.
 #
@@ -129,6 +129,7 @@ kmkmissing_SOURCES.win += \
 	w32/subproc/misc.c \
 	w32/subproc/sub_proc.c \
 	w32/subproc/w32err.c \
+	w32/compat/dirent.c \
 	w32/pathstuff.c \
 	w32/imagecache.c
 
