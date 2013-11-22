@@ -18,12 +18,6 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef _DIRENT_H
 #define _DIRENT_H
 
-#ifdef KMK
-# include <windows.h>
-# include "nt/ntdir.h"
-
-#else /* !KMK */
-
 #ifdef __MINGW32__
 # include <windows.h>
 # include_next <dirent.h>
@@ -63,5 +57,4 @@ int telldir(DIR *);
 void seekdir(DIR *, long);
 
 #endif  /* !__MINGW32__ */
-#endif  /* !KMK */
 #endif
