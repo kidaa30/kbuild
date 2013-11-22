@@ -1,4 +1,4 @@
-/* $Id: mscfakes.c 2484 2011-07-21 19:01:08Z bird $ */
+/* $Id: mscfakes.c 2702 2013-11-21 00:11:08Z bird $ */
 /** @file
  * Fake Unix stuff for MSC.
  */
@@ -108,8 +108,8 @@ msc_fix_path(const char **ppszPath, int *pfMustBeDir)
 }
 
 
-static int
-msc_set_errno(DWORD dwErr)
+int
+birdSetErrno(DWORD dwErr)
 {
     switch (dwErr)
     {
@@ -183,7 +183,7 @@ int lchmod(const char *pszPath, mode_t mode)
      */
     DWORD fAttr = GetFileAttributes(pszPath);
     if (fAttr == INVALID_FILE_ATTRIBUTES)
-        rc = msc_set_errno(GetLastError());
+        rc = birdSetErrno(GetLastError());
     else if (fMustBeDir & !(fAttr & FILE_ATTRIBUTE_DIRECTORY))
     {
         errno = ENOTDIR;
@@ -199,7 +199,7 @@ int lchmod(const char *pszPath, mode_t mode)
         else
             fAttr |= FILE_ATTRIBUTE_READONLY;
         if (!SetFileAttributes(pszPath, fAttr))
-            rc = msc_set_errno(GetLastError());
+            rc = birdSetErrno(GetLastError());
     }
 
     if (pszPathFree)
@@ -223,7 +223,7 @@ int msc_chmod(const char *pszPath, mode_t mode)
      */
     DWORD fAttr = GetFileAttributes(pszPath);
     if (fAttr == INVALID_FILE_ATTRIBUTES)
-        rc = msc_set_errno(GetLastError());
+        rc = birdSetErrno(GetLastError());
     else if (fMustBeDir & !(fAttr & FILE_ATTRIBUTE_DIRECTORY))
     {
         errno = ENOTDIR;
@@ -244,7 +244,7 @@ int msc_chmod(const char *pszPath, mode_t mode)
         else
             fAttr |= FILE_ATTRIBUTE_READONLY;
         if (!SetFileAttributes(pszPath, fAttr))
-            rc = msc_set_errno(GetLastError());
+            rc = birdSetErrno(GetLastError());
     }
 
     if (pszPathFree)
@@ -282,7 +282,7 @@ int link(const char *pszDst, const char *pszLink)
 
     if (s_pfnCreateHardLinkA(pszLink, pszDst, NULL))
         return 0;
-    return msc_set_errno(GetLastError());
+    return birdSetErrno(GetLastError());
 }
 
 
@@ -477,13 +477,15 @@ int writev(int fd, const struct iovec *vector, int count)
 
 intmax_t strtoimax(const char *nptr, char **endptr, int base)
 {
-    return strtol(nptr, endptr, base); /** @todo fix this. */
+    if (*nptr != '-')
+        return _strtoui64(nptr, endptr, base);
+    return -(intmax_t)_strtoui64(nptr + 1, endptr, base);
 }
 
 
 uintmax_t strtoumax(const char *nptr, char **endptr, int base)
 {
-    return strtoul(nptr, endptr, base); /** @todo fix this. */
+    return _strtoui64(nptr, endptr, base);
 }
 
 
@@ -531,38 +533,4 @@ int vasprintf(char **strp, const char *fmt, va_list va)
     return rc;
 }
 
-
-#undef stat
-/*
- * Workaround for directory names with trailing slashes.
- * Added by bird reasons stated.
- */
-int
-my_other_stat(const char *path, struct stat *st)
-{
-    int rc = stat(path, st);
-    if (    rc != 0
-        &&  errno == ENOENT
-        &&  *path != '\0')
-    {
-        char *slash = strchr(path, '\0') - 1;
-        if (*slash == '/' || *slash == '\\')
-        {
-            size_t len_path = slash - path + 1;
-            char *tmp = alloca(len_path + 4);
-            memcpy(tmp, path, len_path);
-            tmp[len_path] = '.';
-            tmp[len_path + 1] = '\0';
-            errno = 0;
-            rc = stat(tmp, st);
-            if (    rc == 0
-                &&  !S_ISDIR(st->st_mode))
-            {
-                errno = ENOTDIR;
-                rc = -1;
-            }
-        }
-    }
-    return rc;
-}
 

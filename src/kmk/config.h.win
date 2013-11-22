@@ -272,7 +272,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.  */
 /* #undef HAVE_SYS_RESOURCE_H */
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
-/* #define HAVE_SYS_STAT_H 1 */
+#define HAVE_SYS_STAT_H 1
 
 /* Define to 1 if you have the <sys/timeb.h> header file. */
 /*#define HAVE_SYS_TIMEB_H 1*/
@@ -343,13 +343,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.  */
 #define PACKAGE_NAME "GNU make"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GNU make 3.81.90"
+#define PACKAGE_STRING "GNU make 3.82"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "make"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.81.90"
+#define PACKAGE_VERSION "3.82"
 
 /* Define to 1 if the C compiler supports function prototypes. */
 #define PROTOTYPES 1
@@ -383,7 +383,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.  */
 #define STDC_HEADERS 1
 
 /* Define if struct stat contains a nanoseconds field */
-/* #undef ST_MTIM_NSEC */
+#define ST_MTIM_NSEC tv_nsec
 
 /* Define to 1 on System V Release 4. */
 /* #undef SVR4 */
@@ -399,7 +399,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.  */
 /* #undef UMAX4_3 */
 
 /* Version number of package */
-#define VERSION "3.81.90"
+#define VERSION "3.82"
 
 /* Define if using the dmalloc debugging malloc package */
 /* #undef WITH_DMALLOC */
@@ -522,10 +522,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.  */
 #undef BATCH_MODE_ONLY_SHELL
 #endif
 
-/* bird hacks */
-#include <sys/stat.h>
-extern int my_stat(const char *, struct stat *);
-#define stat(_path, _st) my_stat(_path, _st)
+/* bird stat hacks. */
+#include <io.h>
+#include <direct.h>
+#include "nt/ntstat.h"
+
+/* bird dirent hack. */
+#define _DIRENT_H /* see w32/dirent.h */
+#include "nt/ntdir.h"
+#define _DIRENT_HAVE_D_NAMLEN 1
+#define _DIRENT_HAVE_D_TYPE   1
+
 
 /* cygwin sucks to much in one end or the other. */
 #define BATCH_MODE_ONLY_SHELL
